@@ -88,8 +88,8 @@ module Minion
   #
   # @example Check all handlers.
   #   Minion.check_handlers
-  def execute_handlers
-    @@handlers.each { |handler| handler.execute }
+  def execute_handlers(channel)
+    @@handlers.each { |handler| handler.execute(channel) }
   end
 
   # Log the supplied information message.
@@ -144,8 +144,9 @@ module Minion
 
     EM.run do
       AMQP.start(config) do
-        AMQP::Channel.new.prefetch(1)
-        execute_handlers
+        @@channel = AMQP::Channel.new
+        @@channel.prefetch(1)
+        execute_handlers(@@channel)
       end
     end
   end

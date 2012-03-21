@@ -8,8 +8,8 @@ module Minion
     #
     # @example Execute the handler.
     #   handler.execute
-    def execute
-      subscribable? ? subscribe : unsubscribe
+    def execute(channel)
+      subscribable? ? subscribe(channel) : unsubscribe(channel)
     end
 
     # Instantiate the new handler. Takes a queue name and optional lambda to
@@ -66,10 +66,10 @@ module Minion
     #
     # @example Subscribe to the queue.
     #   handler.subscribe
-    def subscribe
+    def subscribe(channel)
       unless running?
         Minion.info("Subscribing to #{queue}")
-        AMQP::Channel.new.queue(queue, durable: true, auto_delete: false).subscribe(ack: true) do |h, m|
+        channel.queue(queue, durable: true, auto_delete: false).subscribe(ack: true) do |h, m|
           return if AMQP.closing?
           begin
             Minion.info("Received: #{queue}:#{m}, #{h}")
@@ -78,7 +78,7 @@ module Minion
             Minion.alert(e)
           end
           h.ack if @ack
-          Minion.execute_handlers
+          #Minion.execute_handlers
         end
         @running = true
       end
@@ -98,9 +98,9 @@ module Minion
     #
     # @example Unsubscribe from the queue.
     #   handler.unsubscribe
-    def unsubscribe
+    def unsubscribe(channel)
       Minion.info("Unsubscribing to #{queue}")
-      AMQP::Channel.new.queue(queue, durable: true, auto_delete: false).unsubscribe
+      channel.queue(queue, durable: true, auto_delete: false).unsubscribe
       @running = false
     end
   end
