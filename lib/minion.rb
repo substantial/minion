@@ -114,7 +114,7 @@ module Minion
   #
   # @option options [ lambda ] :when Conditionally process the job.
   def job(queue, options = {}, &block)
-    Minion::Handler.new(queue, block, options[:when]).tap do |handler|
+    Minion::Handler.new(queue, block, options).tap do |handler|
       @@handlers ||= []
       at_exit { Minion.run } if @@handlers.size == 0
       @@handlers << handler
